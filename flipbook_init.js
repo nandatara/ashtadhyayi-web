@@ -1,7 +1,6 @@
 // --- CONFIGURATION ---
 // Update this URL when deploying to production (e.g., https://www.gtnmtn.com/sutras/)
-const SPHINX_BASE_URL = 'https://panini-archive.netlify.app/sutras/';
-// ---------------------
+const SPHINX_BASE_URL = 'https://nandatara.github.io/panini-archive-web/sutras/';// ---------------------
 document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. Build the array of 4,516 WebP images
