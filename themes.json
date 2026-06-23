@@ -1,0 +1,26 @@
+[
+    {
+        "title": "इत्-संज्ञा (It-saṃjñā)",
+        "start": "1.3.2",
+        "end": "1.3.9",
+        "desc": "Rules assigning the 'it' (mutant) marker."
+    },
+    {
+        "title": "इडागम (Iḍāgama)",
+        "start": "7.2.8",
+        "end": "7.2.78",
+        "desc": "Rules for the insertion of the augment 'iṭ'."
+    },
+    {
+        "title": "णत्व (Ṇatva)",
+        "start": "8.4.1",
+        "end": "8.4.39",
+        "desc": "Rules governing the substitution of 'n' with 'ṇ'."
+    },
+    {
+        "title": "षत्व (Ṣatva)",
+        "start": "8.3.55",
+        "end": "8.3.119",
+        "desc": "Rules governing the substitution of 's' with 'ṣ'."
+    }
+]

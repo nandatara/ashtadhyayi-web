@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aṣṭādhyāyī Explorer</title>
+    <style>
+		
+				/* --- Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+				/* --- Modal Tabs --- */
+        .modal-tabs {
+            display: flex;
+            background: #1e293b;
+            border-bottom: 1px solid #475569;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn:hover { color: #ffffff; background: #334155; }
+        .tab-btn.active {
+            color: #60a5fa;
+            border-bottom-color: #3b82f6;
+            font-weight: bold;
+            background: #0f172a;
+        }
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #0f172a;
+            border-bottom: 1px solid #475569;
+            border-radius: 8px 8px 0 0;
+        }
+        .modal-header h2 { margin: 0; font-size: 1.3rem; }
+        .close-btn {
+            background: none; border: none; color: white;
+            font-size: 1.8rem; cursor: pointer;
+        }
+        .close-btn:hover { color: #ef4444; }
+        
+        .theme-list {
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .theme-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .theme-card:hover { border-color: #3b82f6; }
+        .theme-title { font-size: 1.2rem; font-weight: bold; color: #60a5fa; margin-bottom: 5px; }
+        .theme-meta { font-size: 0.9rem; color: #94a3b8; font-family: monospace; }
+        .theme-desc { margin-top: 8px; font-size: 0.95rem; color: #cbd5e1; }
+				
+        /* --- Global Reset & Theme --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a202c; /* Dark navy background */
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Top Navigation Bar --- */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0f172a; /* Deeper header color */
+            padding: 15px 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+        .nav-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .nav-controls {
+            display: flex;
+            gap: 15px;
+        }
+        .nav-select, .nav-btn {
+            background-color: #334155;
+            color: white;
+            border: 1px solid #475569;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        /* --- Main Book Area --- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .book-wrapper {
+            position: relative;
+            width: 1100px; 
+            height: 550px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        #flipbook { width: 100%; height: 100%; }
+        
+#commentary-link {
+            position: absolute;
+            bottom: 40px;   
+            right: 50px;    
+            width: 250px;   
+            height: 40px;   
+            z-index: 9999;  /* Keep it on top */
+            border: none;
+            background: transparent;
+            display: none;
+            overflow: hidden;
+        }
+        /* --- Bottom Control Bar --- */
+        .bottom-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #0f172a;
+            padding: 15px 0;
+            gap: 15px;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .bottom-controls button {
+            background-color: #3b82f6; /* Gita Reader Blue */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: background-color 0.2s;
+        }
+        .bottom-controls button:hover {
+            background-color: #2563eb;
+        }
+        .page-tracker {
+            font-size: 1rem;
+            margin: 0 10px;
+        }
+        #page-input {
+            width: 60px;
+            background-color: #1e293b;
+            color: white;
+            border: 1px solid #475569;
+            padding: 5px;
+            border-radius: 3px;
+            text-align: center;
+        }
+				
+				/* --- Search Bar Styles --- */
+        .search-box {
+            position: relative;
+            margin-right: 15px;
+        }
+        #search-input {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #475569;
+            background-color: #1e293b;
+            color: white;
+            width: 250px;
+            font-size: 0.95rem;
+        }
+        #search-input::placeholder { color: #94a3b8; }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-top: none;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+            border-radius: 0 0 4px 4px;
+        }
+        .search-results li {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .search-results li:hover { background-color: #334155; }
+        .res-id { font-weight: bold; color: #cbd5e1; font-size: 0.85rem; }
+        .res-text { font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+        <div class="nav-title">Aṣṭādhyāyī Explorer</div>
+        <div class="nav-controls">
+						<div class="search-box">
+                <input type="text" id="search-input" placeholder="Search 1.1.1 or Sūtra..." autocomplete="off">
+                <ul id="search-results" class="search-results"></ul>
+            </div>
+            <select class="nav-select" id="sel-adhyaya">
+                <option value="">Adhyaya...</option>
+            </select>
+            <select class="nav-select" id="sel-pada" disabled>
+                <option value="">Pada...</option>
+            </select>
+            <select class="nav-select" id="sel-chunk" disabled>
+                <option value="">Sutras...</option>
+            </select>
+            <select class="nav-select" id="sel-sutra" disabled>
+                <option value="">Go to...</option>
+            </select>
+						
+						<a id="btn-commentary" class="nav-btn" target="_blank" style="display: none; background-color: #2563eb; color: white; text-decoration: none;">
+                📚 Read Commentary
+            </a>
+						
+						<button class="nav-btn" id="btn-index">☰ Index</button>
+            <button class="nav-btn" id="btn-fullscreen">⛶ Fullscreen</button>
+        </div>
+    </header>
+
+    <main class="main-content">        <div class="book-wrapper">
+            <div id="flipbook"></div>
+</main>
+
+    <!-- The Index Modal (Hidden by default) -->
+    <div id="theme-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Aṣṭādhyāyī Index</h2>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-target="themes">Prakaraṇa (Themes)</button>
+                <button class="tab-btn" data-target="adhikaras">Adhikāra (Domains)</button>
+            </div>
+            <div id="theme-list" class="theme-list"></div>
+        </div>
+    </div>
+
+    <!-- RESTORED: Bottom Control Bar -->
+    <footer class="bottom-controls">
+        <button id="btn-first">|◀ First</button>
+        <button id="btn-prev">◀ Prev</button>
+        
+        <span class="page-tracker">
+            Page <input type="number" id="page-input" min="1" max="4516" value="1"> of 4516
+        </span>
+        
+        <button id="btn-next">Next ▶</button>
+        <button id="btn-last">Last ▶|</button>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.min.js"></script>
+    <script src="flipbook_init.js"></script>
+</body>
+</html>

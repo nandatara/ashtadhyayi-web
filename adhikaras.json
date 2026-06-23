@@ -1,0 +1,32 @@
+[
+    {
+        "title": "प्रत्ययः (Pratyaya)",
+        "start": "3.1.1",
+        "end": "5.4.160",
+        "desc": "The massive domain governing the introduction of all affixes."
+    },
+    {
+        "title": "अङ्गस्य (Aṅgasya)",
+        "start": "6.4.1",
+        "end": "7.4.97",
+        "desc": "Operations performed on a base (aṅga) when followed by an affix."
+    },
+    {
+        "title": "कारक (Kāraka)",
+        "start": "1.4.23",
+        "end": "1.4.55",
+        "desc": "Rules governing syntactic roles in a sentence."
+    },
+    {
+        "title": "भस्य (Bhasya)",
+        "start": "1.4.18",
+        "end": "1.4.20",
+        "desc": "The 'bha' designation and its domain."
+    },
+    {
+        "title": "समासः (Samāsa)",
+        "start": "2.1.3",
+        "end": "2.2.38",
+        "desc": "The domain of compound word formation."
+    }
+]

@@ -1,0 +1,330 @@
+// --- CONFIGURATION ---
+// Update this URL when deploying to production (e.g., https://www.gtnmtn.com/sutras/)
+const SPHINX_BASE_URL = 'https://panini-archive.netlify.app/sutras/';
+// ---------------------
+document.addEventListener('DOMContentLoaded', async () => {
+
+    // 2. Build the array of 4,516 WebP images
+    const totalPages = 4516; 
+    const pageUrls = [];
+    for (let i = 1; i <= totalPages; i++) {
+        pageUrls.push(`assets/pages/page_${i}.webp`);
+    }
+
+    // 3. Initialize StPageFlip
+				const pageFlip = new St.PageFlip(document.getElementById('flipbook'), {
+				width: 1100, 
+        height: 550,
+        size: "fixed",
+        showCover: true,
+        useMouseEvents: true
+    });
+
+    // Load images
+    pageFlip.loadFromImages(pageUrls);
+
+    const overlayLink = document.getElementById('commentary-link');
+
+    // 4. Update the Overlay on Page Flip
+// 3. Keep Input Synced and Update Commentary Overlay
+// 3. Keep Input Synced and Update Commentary Overlay
+// 3. Keep Input Synced and Update Top Commentary Button
+    pageFlip.on('flip', (e) => {
+        const currentPage = e.data + 1;
+        if (pageInput) pageInput.value = currentPage; 
+        
+        const currentSutra = searchIndex.find(s => s.page === currentPage);
+        const commentaryBtn = document.getElementById('btn-commentary');
+        
+        if (currentSutra && commentaryBtn) {
+            const parts = currentSutra.id.split('.');
+            const paddedA = parts[0];
+            const paddedP = parts[1];
+            const paddedN = parts[2].padStart(3, '0');
+            
+            // Route the dynamic URL to our real Top Nav button
+            commentaryBtn.href = `${SPHINX_BASE_URL}${paddedA}${paddedP}${paddedN}.html`;
+            commentaryBtn.style.display = 'inline-flex'; // Show it
+        } else if (commentaryBtn) {
+            commentaryBtn.style.display = 'none'; // Hide if no Sūtra found
+        }
+    }); 
+
+ // Trigger initial state for Page 1
+    pageFlip.on('init', () => {
+        const initialUrl = linkMap[1];
+        if (initialUrl) {
+            overlayLink.href = initialUrl;
+            overlayLink.style.display = 'block';
+        }
+    });
+		
+		// --- UI Controls Integration ---
+    
+    const btnNext = document.getElementById('btn-next');
+    const btnPrev = document.getElementById('btn-prev');
+    const pageInput = document.getElementById('page-input');
+
+    // 1. Button Clicks
+    btnNext.addEventListener('click', () => {
+        pageFlip.flipNext();
+    });
+
+    btnPrev.addEventListener('click', () => {
+        pageFlip.flipPrev();
+    });
+
+    // 2. Jump to Page via Input (pressing Enter)
+    pageInput.addEventListener('change', (e) => {
+        let targetPage = parseInt(e.target.value, 10);
+        // StPageFlip uses 0-based indexing, so subtract 1
+        if (targetPage >= 1 && targetPage <= totalPages) {
+            pageFlip.flip(targetPage - 1); 
+        }
+    });
+
+// 3. Keep Input Synced and Update Commentary Overlay
+// 3. Keep Input Synced and Update Commentary Overlay
+    pageFlip.on('flip', (e) => {
+        const currentPage = e.data + 1;
+        
+        // Ensure the input box exists before trying to update it
+        if (pageInput) {
+            pageInput.value = currentPage; 
+        }
+        
+        // Find the corresponding Sūtra for this page
+        const currentSutra = searchIndex.find(s => s.page === currentPage);
+        const overlayLink = document.getElementById('commentary-link');
+        
+        if (currentSutra && overlayLink) {
+            // Fix: Split the "1.1.1" ID string into an array: ["1", "1", "1"]
+            const parts = currentSutra.id.split('.');
+            
+            const paddedA = parts[0];
+            const paddedP = parts[1];
+            const paddedN = parts[2].padStart(3, '0');
+            
+            // Build the URL
+            overlayLink.href = `${SPHINX_BASE_URL}${paddedA}${paddedP}${paddedN}.html`;
+            overlayLink.style.display = 'block';
+        } else if (overlayLink) {
+            overlayLink.style.display = 'none';
+        }
+    });		
+		const btnFirst = document.getElementById('btn-first');
+    const btnLast = document.getElementById('btn-last');
+
+    // Jump to the very first page
+    btnFirst.addEventListener('click', () => {
+        pageFlip.flip(0); 
+    });
+
+    // Jump to the very last page
+    btnLast.addEventListener('click', () => {
+        // totalPages is 4516, we subtract 1 for 0-indexed array
+        pageFlip.flip(totalPages - 1); 
+    });
+		
+		// --- Cascading Dropdown Navigation ---
+    const selAdhyaya = document.getElementById('sel-adhyaya');
+    const selPada = document.getElementById('sel-pada');
+    const selChunk = document.getElementById('sel-chunk');
+    const selSutra = document.getElementById('sel-sutra');
+    
+    let navTree = {};
+
+    // 1. Fetch the Navigation Tree generated by Python
+    const treeResponse = await fetch('nav_tree.json');
+    navTree = await treeResponse.json();
+
+    // 2. Populate Adhyaya Dropdown
+    Object.keys(navTree).forEach(a => {
+        selAdhyaya.add(new Option(`Adhyaya ${a}`, a));
+    });
+
+    // 3. Handle Adhyaya Selection
+    selAdhyaya.addEventListener('change', function() {
+        selPada.innerHTML = '<option value="">Pada...</option>';
+        selChunk.innerHTML = '<option value="">Sutras...</option>';
+        selSutra.innerHTML = '<option value="">Go to...</option>';
+        selPada.disabled = true; selChunk.disabled = true; selSutra.disabled = true;
+
+        if (this.value) {
+            Object.keys(navTree[this.value]).forEach(p => {
+                selPada.add(new Option(`Pada ${p}`, p));
+            });
+            selPada.disabled = false;
+        }
+    });
+
+    // 4. Handle Pada Selection
+    selPada.addEventListener('change', function() {
+        selChunk.innerHTML = '<option value="">Sutras...</option>';
+        selSutra.innerHTML = '<option value="">Go to...</option>';
+        selChunk.disabled = true; selSutra.disabled = true;
+
+        const a = selAdhyaya.value;
+        if (this.value && a) {
+            Object.keys(navTree[a][this.value]).forEach(chunk => {
+                selChunk.add(new Option(chunk, chunk));
+            });
+            selChunk.disabled = false;
+        }
+    });
+
+    // 5. Handle Chunk Selection
+    selChunk.addEventListener('change', function() {
+        selSutra.innerHTML = '<option value="">Go to...</option>';
+        selSutra.disabled = true;
+
+        const a = selAdhyaya.value;
+        const p = selPada.value;
+        if (this.value && a && p) {
+            navTree[a][p][this.value].forEach(sutraObj => {
+                // Value is the exact page number!
+                selSutra.add(new Option(sutraObj.label, sutraObj.page));
+            });
+            selSutra.disabled = false;
+        }
+    });
+
+// 6. Handle Final Sutra Selection (Execute Jump)
+    selSutra.addEventListener('change', function() {
+        if (this.value) {
+            const targetPage = parseInt(this.value, 10);
+            
+            // StPageFlip uses 0-indexed arrays
+            pageFlip.flip(targetPage - 1);
+            
+            // Reset the dropdown back to default immediately after jumping
+            // so it does not display stale data if the user turns pages manually
+            this.selectedIndex = 0; 
+        }
+    });
+		
+		// --- Search Bar Logic ---
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    let searchIndex = [];
+
+    // 1. Fetch the newly generated search index
+    const searchResponse = await fetch('search_index.json');
+    searchIndex = await searchResponse.json();
+
+    // 2. Listen for typing
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim().toLowerCase();
+        searchResults.innerHTML = '';
+        
+        // Hide if empty
+        if (query.length < 1) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        // 3. Filter the array: match Sūtra ID OR Devanagari text
+        const matches = searchIndex.filter(item => 
+            item.id.includes(query) || item.text.includes(query)
+        ).slice(0, 15); // Cap at 15 results for performance
+
+        // 4. Render the dropdown
+        if (matches.length > 0) {
+            matches.forEach(match => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="res-id">Sūtra ${match.id}</span> <span class="res-text">${match.text}</span>`;
+                
+                // 5. Jump to page on click
+                li.addEventListener('click', () => {
+                    pageFlip.flip(match.page - 1); // 0-indexed
+                    searchResults.style.display = 'none'; // Close dropdown
+                    searchInput.value = ''; // Clear search bar
+                });
+                searchResults.appendChild(li);
+            });
+            searchResults.style.display = 'block';
+        } else {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // Close the dropdown if the user clicks anywhere else on the screen
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-box')) {
+            searchResults.style.display = 'none';
+        }
+    });
+		
+// --- Index Modal Logic (Themes & Adhikaras) ---
+    const btnIndex = document.getElementById('btn-index');
+    const themeModal = document.getElementById('theme-modal');
+    const closeModal = document.getElementById('close-modal');
+    const themeList = document.getElementById('theme-list');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+
+    let modalData = {
+        themes: [],
+        adhikaras: []
+    };
+    let currentTab = 'themes';
+
+    // 1. Fetch both datasets simultaneously
+    Promise.all([
+        fetch('themes.json').then(res => res.json()),
+        fetch('adhikaras.json').then(res => res.json())
+    ]).then(([themes, adhikaras]) => {
+        modalData.themes = themes;
+        modalData.adhikaras = adhikaras;
+        renderModalList(); // Render default tab (themes)
+    });
+
+    // 2. Render the active list
+    function renderModalList() {
+        themeList.innerHTML = '';
+        const dataToRender = modalData[currentTab];
+
+        dataToRender.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'theme-card';
+            card.innerHTML = `
+                <div class="theme-title">${item.title}</div>
+                <div class="theme-meta">Sūtras ${item.start} — ${item.end}</div>
+                <div class="theme-desc">${item.desc}</div>
+            `;
+            
+            // Jump to the start of the section when clicked
+            card.addEventListener('click', () => {
+                const targetSutra = searchIndex.find(s => s.id === item.start);
+                if (targetSutra) {
+                    pageFlip.flip(targetSutra.page - 1); 
+                    themeModal.style.display = 'none';   
+                } else {
+                    console.error("Could not find page for Sūtra: " + item.start);
+                }
+            });
+            themeList.appendChild(card);
+        });
+    }
+
+    // 3. Handle Tab Switching
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Remove active class from all tabs
+            tabBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked tab
+            e.target.classList.add('active');
+            
+            // Update current tab state and re-render
+            currentTab = e.target.getAttribute('data-target');
+            renderModalList();
+        });
+    });
+
+    // 4. Modal Open/Close Controls
+    btnIndex.addEventListener('click', () => themeModal.style.display = 'flex');
+    closeModal.addEventListener('click', () => themeModal.style.display = 'none');
+    window.addEventListener('click', (e) => {
+        if (e.target === themeModal) themeModal.style.display = 'none';
+    });
+		
+		});
